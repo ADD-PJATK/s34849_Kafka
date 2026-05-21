@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+env/
+venv/
+.venv/
+ENV/
+
+# Output directory (generated files, not source)
+out/
+
+# Node.js / npm (AA2 apps)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.npm/
+
+# Kafka / Java artifacts
+*.jar
+*.class
+target/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+*.env
+*.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Spark checkpoints and temporary data
+checkpoints/
+spark-warehouse/
