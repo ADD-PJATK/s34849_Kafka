@@ -1,17 +1,17 @@
-# s34849__anonymize
-Anonymizer app for extra points from student s34849
+# AA1 — Local Data Anonymizer
+
+**Student:** s34849 — Selmane Cherifi  
+**Part of:** [s34849_Kafka](https://github.com/ADD-PJATK/s34849_Kafka) — ADD Project Phase 2
 
 A self-contained CLI tool that redacts sensitive strings in `.json`, `.txt`, `.md`, and `.csv` files using deterministic rules loaded from a JSON mapping file.
 
-**No external APIs, HTTP requests, or AI/LLM services are used at runtime.** All replacements are local, deterministic string substitutions using only the Python standard library.
+**No external APIs, HTTP requests, or AI/LLM services are used at runtime.** All replacements are local, deterministic string substitutions using only the Python standard library (`re`, `json`, `argparse`, `sys`, `pathlib`).
 
 ---
 
 ## Prerequisites
 
 - **Python 3.8 or later** — uses only the standard library, no `pip install` needed.
-
-Verify your version:
 
 ```bash
 python --version
@@ -21,19 +21,23 @@ python --version
 
 ## Installation
 
+Clone the unified repository and the anonymizer is ready to use — no extra steps:
+
 ```bash
-git clone <your-repo-url>
-cd <repo-folder>
+git clone https://github.com/ADD-PJATK/s34849_Kafka.git
+cd s34849_Kafka
 ```
 
-No additional dependencies. The script runs directly.
+No virtual environment or additional dependencies needed.
 
 ---
 
 ## How to Run
 
+All commands below are run **from the repository root** (`s34849_Kafka/`).
+
 ```bash
-python anonymize.py --mapping <mapping.json> --input <source-file> --output <output-file>
+python anonymizer/anonymize.py --mapping <mapping.json> --input <source-file> --output <output-file>
 ```
 
 ### Arguments
@@ -46,26 +50,46 @@ python anonymize.py --mapping <mapping.json> --input <source-file> --output <out
 | `--dry-run` | No | Print replacement counts without writing any file |
 | `--verbose` | No | Log each find→replace count to stderr |
 
-### Copy-pasteable examples
+### Copy-pasteable examples (run from repo root)
 
 ```bash
 # Anonymize a Markdown file
-python anonymize.py --mapping examples/mapping.json --input examples/note.md --output out/note.anon.md
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/note.md \
+  --output  out/note.anon.md
 
 # Anonymize a CSV file
-python anonymize.py --mapping examples/mapping.json --input examples/records.csv --output out/records.anon.csv
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/records.csv \
+  --output  out/records.anon.csv
 
 # Anonymize a plain-text log
-python anonymize.py --mapping examples/mapping.json --input examples/log.txt --output out/log.anon.txt
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/log.txt \
+  --output  out/log.anon.txt
 
 # Anonymize a JSON data file
-python anonymize.py --mapping examples/mapping.json --input examples/data.json --output out/data.anon.json
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/data.json \
+  --output  out/data.anon.json
 
-# Preview what would change without writing (dry run)
-python anonymize.py --mapping examples/mapping.json --input examples/note.md --output out/note.anon.md --dry-run
+# Preview replacements without writing (dry run)
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/note.md \
+  --output  out/note.anon.md \
+  --dry-run
 
-# Verbose: see each substitution logged to stderr
-python anonymize.py --mapping examples/mapping.json --input examples/records.csv --output out/records.anon.csv --verbose
+# Verbose: log each substitution count to stderr
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/records.csv \
+  --output  out/records.anon.csv \
+  --verbose
 ```
 
 > The `out/` directory is created automatically if it does not exist.
@@ -99,7 +123,7 @@ The mapping file is a **UTF-8 JSON file** with two top-level keys:
 An ordered array of rules. Each rule contains:
 
 - **`find`** — a **non-empty array of strings**. Every string in this list is replaced by the same token.
-- **`replace`** — a **single string**. This is the anonymized substitute for every match of any string in `find`.
+- **`replace`** — a **single string**. The anonymized substitute for every match of any entry in `find`.
 
 ### `options` (optional)
 
@@ -123,54 +147,26 @@ An ordered array of rules. Each rule contains:
 
 ## Processing Order and Overlap Policy
 
-### Rule order
-
-Rules are applied in the **exact order they appear** in the `replacements` array. No sorting is performed.
-
-### Within a rule: `find` entry order
-
-Within each rule, the strings in `find` are applied **one at a time, in array order**. Each string triggers a complete left-to-right scan of the text as it exists **at that point** — after all prior replacements from earlier find entries in the same rule and from earlier rules.
-
-### The algorithm
+Rules are applied in the **exact order they appear** in the `replacements` array. Within each rule, strings in `find` are applied **one at a time, in array order** — each string scans the text as it exists after all prior replacements.
 
 ```
 for each rule in replacements (in array order):
     for each find_string in rule.find (in array order):
-        replace ALL non-overlapping occurrences of find_string,
-        scanning left-to-right in a single pass
+        replace ALL non-overlapping occurrences left-to-right
 ```
 
-### Overlap within a single rule
-
-Because each `find` entry in a rule is applied sequentially to the already-modified text, the first matching entry "consumes" the overlapping region before the next entry can see it.
-
-**Example:** `find = ["ab", "bc"]`, `replace = "TOKEN"`, source = `"abc"`
+**Overlap example:** `find = ["ab", "bc"]`, `replace = "TOKEN"`, source = `"abc"`
 
 1. Apply `"ab"` → text becomes `"TOKENc"`
-2. Apply `"bc"` → `"bc"` no longer exists in `"TOKENc"` → no change
+2. Apply `"bc"` → `"bc"` no longer exists → no change
 3. Final result: `"TOKENc"`
-
-### Overlap between rules
-
-Once a substring is converted to a replacement token, later rules may match the token string if it contains their `find` text. **Use distinctive, safe tokens** (e.g., `PERSON_A`, `EMAIL_01`) that cannot accidentally appear in other `find` strings.
-
-### Multiple `find` entries in one rule (interaction)
-
-All entries in `find` map to the same `replace` token. Because they are applied in array order:
-
-- `find[0]` is applied first across the entire text.
-- `find[1]` is applied to the result of `find[0]`, and so on.
-- This means `find[1]` will never match text that was already replaced by `find[0]`.
-
-This behavior is **deterministic** and **intentional** — it prevents double-replacement and ensures consistent output for the same inputs.
 
 ---
 
 ## Encoding
 
-- **Input** files are read as **UTF-8**. If a file cannot be decoded as UTF-8, the program exits with a descriptive error.
-- **Output** files are written as **UTF-8** (no BOM).
-- The mapping file is also read as **UTF-8**.
+- **Input and output:** UTF-8. On invalid UTF-8 input the program exits with a descriptive error.
+- **Output:** UTF-8, no BOM.
 
 ---
 
@@ -182,19 +178,19 @@ This behavior is **deterministic** and **intentional** — it prevents double-re
 | `--output` is the same path as `--input` | Warning printed to stderr; file is overwritten |
 | `--dry-run` flag set | Nothing written; replacement counts printed to stdout |
 | No matches found | Output file written, identical to input; `0 replacement(s)` reported |
-| Output file already exists | Silently overwritten (no prompt) |
+| Output file already exists | Silently overwritten |
 
 ---
 
 ## No External Services
 
-This tool does **not** make any HTTP or HTTPS requests. It does **not** call any AI model, LLM, or cloud API (OpenAI, Anthropic, Google, or any other) to perform replacements. All masking is done with local, deterministic Python string operations using only the built-in `re`, `json`, `argparse`, `sys`, and `pathlib` modules.
+This tool does **not** make any HTTP or HTTPS requests. It does **not** call any AI model, LLM, or cloud API (OpenAI, Anthropic, Google, or any other) to perform replacements. All masking is done with local, deterministic Python string operations using only built-in modules.
 
 ---
 
 ## Before / After Example
 
-**Input (`examples/note.md` — excerpt):**
+**Input (`anonymizer/examples/note.md` — excerpt):**
 
 ```
 - Anna Nowak (Team Lead) -- anna@firma.test -- +48 123 456 789
@@ -203,13 +199,16 @@ This tool does **not** make any HTTP or HTTPS requests. It does **not** call any
 A. Nowak opened the meeting. NOWAK, Anna approved the final draft.
 ```
 
-**Command:**
+**Command (from repo root):**
 
 ```bash
-python anonymize.py --mapping examples/mapping.json --input examples/note.md --output out/note.anon.md
+python anonymizer/anonymize.py \
+  --mapping anonymizer/examples/mapping.json \
+  --input   anonymizer/examples/note.md \
+  --output  out/note.anon.md
 ```
 
-**Output (`out/note.anon.md` — same excerpt):**
+**Output (`out/note.anon.md`):**
 
 ```
 - PERSON_A (Team Lead) -- EMAIL_A -- PHONE_01
@@ -218,9 +217,7 @@ python anonymize.py --mapping examples/mapping.json --input examples/note.md --o
 PERSON_A opened the meeting. PERSON_A approved the final draft.
 ```
 
----
-
-**Input (`examples/records.csv`):**
+**Input (`anonymizer/examples/records.csv`):**
 
 ```
 id,full_name,email,phone,address
@@ -240,16 +237,19 @@ id,full_name,email,phone,address
 
 ## Examples Directory
 
+All paths below are relative to the **repository root** (`s34849_Kafka/`):
+
 | File | Description |
 |------|-------------|
-| `examples/mapping.json` | Six rules covering names, emails, phone, and address |
-| `examples/note.md` | Markdown meeting notes with multiple sensitive references |
-| `examples/records.csv` | CSV employee records with names, emails, phones, addresses |
-| `examples/log.txt` | Application log entries containing sensitive data |
-| `examples/data.json` | JSON project file with team and contact information |
+| `anonymizer/examples/mapping.json` | Six rules covering names, emails, phone, and address |
+| `anonymizer/examples/note.md` | Markdown meeting notes with multiple sensitive references |
+| `anonymizer/examples/records.csv` | CSV employee records with names, emails, phones, addresses |
+| `anonymizer/examples/log.txt` | Application log entries containing sensitive data |
+| `anonymizer/examples/data.json` | JSON project file with team and contact information |
+| `anonymizer/examples/output/` | Pre-generated anonymized outputs for all four extensions |
 
 ---
 
 ## Screenshots
 
-See the `screenshots/` folder for terminal output showing successful anonymization runs on `.md`, `.csv`, `.txt`, and `.json` files.
+See [`anonymizer/screenshots/`](screenshots/) for terminal output showing successful anonymization runs on `.md`, `.csv`, `.txt`, and `.json` files.

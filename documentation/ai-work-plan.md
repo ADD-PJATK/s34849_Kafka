@@ -2,9 +2,10 @@
 
 **Document title:** AI-Assisted Work Plan – ADD Project  
 **Student ID:** s34849  
+**Name:** Selmane Cherifi  
 **Date last updated:** 2026-05-21  
 **Course:** Analysis of Large Data Sets (ADD)  
-**Repository:** [s34849_kafka](https://github.com/selmanepj/s34849_kafka)
+**Repository:** [ADD-PJATK/s34849_Kafka](https://github.com/ADD-PJATK/s34849_Kafka)
 
 ---
 
@@ -242,3 +243,4 @@ Use this checklist before every `git push` to `main` on `s34849_kafka`:
 |------|---------|--------|
 | 2026-05-21 | 0.1 | Initial draft created with Claude Sonnet 4.6 assistance; all sections 3.1–3.10 present; four task-specific plans included |
 | 2026-05-21 | 1.0 | Reviewed and edited manually; task-specific plans verified against ACCEPTANCE.md criteria; visualisation task plan removed as out of scope; section 3.8 (disclosure) written by student; all D1–D9 criteria confirmed present |
+| 2026-05-21 | 1.1 | Added student full name (Selmane Cherifi) to title block; corrected repository URL to ADD-PJATK/s34849_Kafka |

@@ -57,7 +57,7 @@ python anonymizer/anonymize.py \
 
 # AA2 — proxy must start without errors
 python kafka-stocks/proxy_server.py
-# Expected: listening message on localhost
+# Expected: "Proxy running on http://localhost:8765"
 
 # Security — no secrets in tracked files
 git grep -i "api_key\|password\|secret\|token" -- "*.py" "*.json" "*.md" "*.html"

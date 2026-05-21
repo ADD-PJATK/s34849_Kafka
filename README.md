@@ -1,6 +1,6 @@
 # s34849_Kafka — ADD Project (Phase 2)
 
-**Student:** s34849  
+**Student:** s34849 — Selmane Cherifi  
 **Course:** Analysis of Large Data Sets (ADD)  
 **Branch:** `main`
 
@@ -91,29 +91,30 @@ s34849_Kafka/
 ├── README.md                               ← this file
 ├── .gitignore
 ├── anonymizer/                             ← AA1: Local Data Anonymizer
-│   ├── README.md
-│   ├── anonymize.py
+│   ├── README.md                           ← prerequisites, install, run, mapping format
+│   ├── anonymize.py                        ← CLI tool (no HTTP/LLM at runtime)
 │   ├── examples/
-│   │   ├── mapping.json
+│   │   ├── mapping.json                    ← 6-rule mapping (names, emails, phone, address)
 │   │   ├── note.md
 │   │   ├── records.csv
 │   │   ├── log.txt
-│   │   └── data.json
-│   └── screenshots/
+│   │   ├── data.json
+│   │   └── output/                         ← pre-generated anonymized outputs (all 4 types)
+│   └── screenshots/                        ← terminal run screenshots (.md and .csv runs)
 ├── kafka-stocks/                           ← AA2: Real-time Stock Data
-│   ├── proxy_server.py                     ← shared CORS proxy (run first)
-│   ├── realtime-dashboard/                 ← App 1
+│   ├── proxy_server.py                     ← shared CORS proxy (port 8765, run first)
+│   ├── realtime-dashboard/                 ← App 1: live SSE price stream
 │   │   ├── index.html
 │   │   ├── README.md
 │   │   └── screenshots/
-│   └── history-downloader/                 ← App 2
+│   └── history-downloader/                 ← App 2: tick history + CSV/JSON export
 │       ├── index.html
 │       ├── README.md
 │       └── screenshots/
 ├── documentation/
-│   └── ai-work-plan.md                     ← AA4: AI-Assisted Work Plan
+│   └── ai-work-plan.md                     ← AA4: AI-Assisted Work Plan (Selmane Cherifi)
 └── consolidation/
-    └── CONSOLIDATION.md                    ← AA3: Merge notes
+    └── CONSOLIDATION.md                    ← AA3: merge notes (two repos → one)
 ```
 
 ---
