@@ -1,0 +1,27 @@
+{
+  "replacements": [
+    {
+      "find": ["Alice Smith", "A. Smith"],
+      "replace": "[PERSON_REDACTED]"
+    },
+    {
+      "find": ["Bob Jones", "B. Jones"],
+      "replace": "[PERSON_REDACTED]"
+    },
+    {
+      "find": ["alice.smith@trading.test"],
+      "replace": "[EMAIL_REDACTED]"
+    },
+    {
+      "find": ["bob.jones@trading.test"],
+      "replace": "[EMAIL_REDACTED]"
+    },
+    {
+      "find": ["Standard open session", "Midday rebalance", "Tech sector play", "Cloud earnings follow-up", "EV sector momentum", "AWS growth play", "Live synthetic tick"],
+      "replace": "[COMMENT_REDACTED]"
+    }
+  ],
+  "options": {
+    "case_sensitive": false
+  }
+}

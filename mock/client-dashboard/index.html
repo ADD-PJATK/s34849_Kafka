@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mock Stock Dashboard</title>
+  <style>
+    body { font-family: monospace; background: #0d1117; color: #c9d1d9; margin: 0; padding: 20px; }
+    h1 { color: #58a6ff; font-size: 1.2rem; margin-bottom: 8px; }
+    .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    select, button, input { background: #161b22; color: #c9d1d9; border: 1px solid #30363d; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: monospace; }
+    button:hover { background: #21262d; }
+    #status { font-size: 0.8rem; color: #8b949e; margin-bottom: 12px; }
+    #status.connected { color: #3fb950; }
+    #status.error { color: #f85149; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #30363d; color: #8b949e; }
+    td { padding: 5px 8px; border-bottom: 1px solid #161b22; }
+    tr:hover td { background: #161b22; }
+    .price-up { color: #3fb950; }
+    .price-down { color: #f85149; }
+    .export-btn { margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Mock Stock Dashboard — localhost:8000</h1>
+
+  <div class="controls">
+    <select id="tickerSelect"></select>
+    <button id="connectBtn">Connect</button>
+    <button id="disconnectBtn" disabled>Disconnect</button>
+    <input type="number" id="bufferSize" value="20" min="5" max="200" title="Buffer size (N ticks)" style="width:70px" />
+    <span style="color:#8b949e;font-size:0.8rem;align-self:center">N ticks</span>
+  </div>
+
+  <div id="status">Not connected</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th><th>Ticker</th><th>Last Price</th><th>Volume</th><th>Operator</th>
+      </tr>
+    </thead>
+    <tbody id="tickTable"></tbody>
+  </table>
+
+  <button class="export-btn" id="exportBtn">Export JSON</button>
+  <button class="export-btn" id="exportCsvBtn">Export CSV</button>
+
+  <script>
+    const API = 'http://localhost:8000';
+    let es = null;
+    let buffer = [];
+
+    async function loadTickers() {
+      try {
+        const r = await fetch(`${API}/api/tickers`);
+        const tickers = await r.json();
+        const sel = document.getElementById('tickerSelect');
+        tickers.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t; opt.textContent = t;
+          sel.appendChild(opt);
+        });
+      } catch (e) {
+        setStatus('Failed to load tickers: ' + e.message, 'error');
+      }
+    }
+
+    function setStatus(msg, cls = '') {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = cls;
+    }
+
+    function addRow(tick) {
+      const N = parseInt(document.getElementById('bufferSize').value) || 20;
+      buffer.unshift(tick);
+      if (buffer.length > N) buffer.length = N;
+
+      const tbody = document.getElementById('tickTable');
+      tbody.innerHTML = '';
+      buffer.forEach((t, i) => {
+        const prev = buffer[i + 1];
+        const cls = prev ? (t.lastPrice >= prev.lastPrice ? 'price-up' : 'price-down') : '';
+        const row = `<tr>
+          <td>${t.timestamp ? t.timestamp.slice(11,19) : new Date().toLocaleTimeString()}</td>
+          <td>${t.ticker}</td>
+          <td class="${cls}">${t.lastPrice?.toFixed(2) ?? '-'}</td>
+          <td>${t.volume ?? '-'}</td>
+          <td>${t.operator_name ?? '-'}</td>
+        </tr>`;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+    }
+
+    document.getElementById('connectBtn').addEventListener('click', () => {
+      const ticker = document.getElementById('tickerSelect').value;
+      if (!ticker) return;
+      if (es) es.close();
+      buffer = [];
+      es = new EventSource(`${API}/api/stream?ticker=${ticker}`);
+      es.onopen = () => setStatus(`Connected — streaming ${ticker}`, 'connected');
+      es.onmessage = e => { try { addRow(JSON.parse(e.data)); } catch {} };
+      es.onerror = () => setStatus('Stream error — is the server running?', 'error');
+      document.getElementById('connectBtn').disabled = true;
+      document.getElementById('disconnectBtn').disabled = false;
+    });
+
+    document.getElementById('disconnectBtn').addEventListener('click', () => {
+      if (es) { es.close(); es = null; }
+      setStatus('Disconnected');
+      document.getElementById('connectBtn').disabled = false;
+      document.getElementById('disconnectBtn').disabled = true;
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(buffer, null, 2)], {type: 'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'ticks_export.json'; a.click();
+    });
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      if (!buffer.length) return;
+      const keys = Object.keys(buffer[0]);
+      const rows = [keys.join(','), ...buffer.map(t => keys.map(k => JSON.stringify(t[k] ?? '')).join(','))];
+      const blob = new Blob([rows.join('\n')], {type: 'text/csv'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'ticks_export.csv'; a.click();
+    });
+
+    loadTickers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+[
+  {
+    "ticker": "AAPL",
+    "lastPrice": 178.23,
+    "volume": 3500,
+    "trader_email": "alice@trading.test",
+    "operator_name": "Alice Smith",
+    "comment": "Standard open session",
+    "timestamp": "2024-01-15T09:30:00Z"
+  },
+  {
+    "ticker": "AAPL",
+    "lastPrice": 179.10,
+    "volume": 2800,
+    "trader_email": "bob@trading.test",
+    "operator_name": "Bob Jones",
+    "comment": "Midday rebalance",
+    "timestamp": "2024-01-15T12:00:00Z"
+  },
+  {
+    "ticker": "GOOG",
+    "lastPrice": 140.55,
+    "volume": 1500,
+    "trader_email": "alice@trading.test",
+    "operator_name": "Alice Smith",
+    "comment": "Tech sector play",
+    "timestamp": "2024-01-15T10:15:00Z"
+  },
+  {
+    "ticker": "MSFT",
+    "lastPrice": 372.90,
+    "volume": 2200,
+    "trader_email": "bob@trading.test",
+    "operator_name": "Bob Jones",
+    "comment": "Cloud earnings follow-up",
+    "timestamp": "2024-01-15T14:30:00Z"
+  },
+  {
+    "ticker": "TSLA",
+    "lastPrice": 245.80,
+    "volume": 4100,
+    "trader_email": "alice@trading.test",
+    "operator_name": "Alice Smith",
+    "comment": "EV sector momentum",
+    "timestamp": "2024-01-15T11:00:00Z"
+  },
+  {
+    "ticker": "AMZN",
+    "lastPrice": 185.60,
+    "volume": 1900,
+    "trader_email": "bob@trading.test",
+    "operator_name": "Bob Jones",
+    "comment": "AWS growth play",
+    "timestamp": "2024-01-15T13:45:00Z"
+  }
+]
