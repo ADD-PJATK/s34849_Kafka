@@ -30,8 +30,7 @@ def test_get_latest():
     assert resp.status_code == 200
     tick = resp.json()
     assert tick["ticker"] == "AAPL"
-    # BUG 1: server fixture uses "lastPrice" but this assertion checks "price"
-    assert "price" in tick, "Expected 'price' key in tick response"
+    assert "lastPrice" in tick, "Expected 'lastPrice' key in tick response"
 
 
 def test_get_latest_unknown_ticker():

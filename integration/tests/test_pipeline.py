@@ -36,8 +36,7 @@ def test_pipeline_exits_zero():
 
 def test_output_file_exists():
     _run_pipeline()
-    # BUG 2: pipeline writes 'pipeline_output.csv' but test checks 'pipeline_out.csv'
-    out_file = OUT_DIR / "pipeline_out.csv"
+    out_file = OUT_DIR / "pipeline_output.csv"
     assert out_file.exists(), (
         f"Expected output file not found: {out_file}\n"
         "Check that run_pipeline.py writes to the correct path."

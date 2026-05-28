@@ -9,11 +9,11 @@
       "replace": "[PERSON_REDACTED]"
     },
     {
-      "find": ["alice.smith@trading.test"],
+      "find": ["alice@trading.test"],
       "replace": "[EMAIL_REDACTED]"
     },
     {
-      "find": ["bob.jones@trading.test"],
+      "find": ["bob@trading.test"],
       "replace": "[EMAIL_REDACTED]"
     },
     {
